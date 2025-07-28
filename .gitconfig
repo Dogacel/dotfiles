@@ -1,0 +1,123 @@
+[user]
+	name = Doğaç Eldenk
+	email = dogacel@gmail.com
+
+[core]
+	excludesfile = /Users/dogac/.gitignore_global
+	ignorecase = false
+  pager = delta
+
+[commit]
+	template = /Users/dogac/.gitmessage
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[push]
+	default = current
+
+[branch "master"]
+	remote = origin
+
+[pull]
+	rebase = true
+
+[alias]
+	ignore = update-index --assume-unchanged
+	unignore = update-index --no-assume-unchanged
+	ignored = !git ls-files -v | grep "^[[:lower:]]" | cat
+
+  co = checkout
+  st = status
+  rh = reset HEAD
+  rhh = reset --hard HEAD
+  pu = pull
+  up = push
+
+  l = "!. ~/.githelpers && pretty_git_log"
+  la = "!git l --all"
+  lr = "!git l -30"
+  lra = "!git lr --all"
+  lg = "!git l -G $1 -- $2"
+  feature = !sh -c 'git checkout --no-track -b $0 origin/main'
+
+  ruf = "!. ~/.githelpers && remove_untracked_files"
+
+	tree = log --oneline --decorate --graph
+
+  # Taken from here: https://aaronbonner.io/post/80766268890/git-alias-to-simplify-setting-upstream-branch
+  sup = "!git branch --set-upstream-to=origin/`git symbolic-ref --short HEAD`"
+
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate = true  # use n and N to move between diff sections
+    dark = true      # or light = true, or omit for auto-detection
+
+[merge]
+    conflictstyle = zdiff3
+[maintenance]
+	repo = /Users/dogac/zsh-plugins/zsh-autocomplete
+	repo = /Users/dogac/zsh-plugins/zsh-snap
+[color "status"]
+	branch = 5 normal
+	added = 10 normal
+	updated = 10 normal
+	localbranch = 5 normal
+	changed = 11 normal
+	header = normal
+	remotebranch = 2 normal
+	nobranch = 1 normal italic
+	unmerged = 9 normal
+	untracked = normal dim
+[color "branch"]
+	plain = 5 normal
+	remote = 2 normal
+	current = 5 normal reverse
+	local = 5 normal
+	upstream = 2 normal
+[color "remote"]
+	hint = normal dim
+	success = 2 normal
+	error = 1 normal
+	warning = 3 normal
+[color "interactive"]
+	header = normal dim bold
+	prompt = 15 4
+	help = normal dim
+	error = 1 normal italic
+[color "diff"]
+	commit = 3 normal
+	newMoved = 15 3
+	oldMovedAlternativeDimmed = 7 5 dim
+	frag = normal dim
+	oldMovedAlternative = 7 5
+	contextBold = normal bold
+	newBold = 15 2 bold
+	context = normal
+	oldMoved = 7 3
+	oldBold = 7 1 bold
+	newMovedDimmed = 15 3 dim
+	func = normal dim
+	meta = normal dim
+	newDimmed = 15 2 dim
+	newMovedAlternative = 15 5
+	new = 15 2
+	newMovedAlternativeDimmed = 15 5 dim
+	whitespace = normal 9
+	oldMovedDimmed = 7 3 dim
+	oldDimmed = 7 1 dim
+	old = 7 1
+[color "decorate"]
+	branch = 5 normal
+	tag = 3 normal
+	remotebranch = 2 normal
+	stash = normal dim
+	grafted = 1 normal italic
+	HEAD = 5 normal italic
+[diff]
+	colorMoved = zebra
