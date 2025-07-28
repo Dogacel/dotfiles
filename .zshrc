@@ -1,5 +1,10 @@
 # zmodload zsh/zprof
 
+# Load home-manager session variables
+if [ -f "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+  source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -38,8 +43,8 @@ zstyle ':omz:plugins:nvm' lazy yes
 
 zi snippet OMZP::vi-mode
 
-zi snippet OMZP::gitfast 
-export fpath=("$HOME/.local/share/zinit/snippets/gitfast" $fpath)
+# zi snippet OMZP::gitfast 
+# export fpath=("$HOME/.local/share/zinit/snippets/gitfast" $fpath)
 
 zi snippet OMZP::nvm
 zi snippet OMZP::kubectl
@@ -77,27 +82,31 @@ eval "$(fzf --zsh)"
 # zstyle ':completion:*' completer _complete _complete:-fuzzy _correct _approximate _ignored
 # zstyle ':autocomplete:*' delay 0.2  # seconds (float)
 
+
+
+alias vim="nvim";
+alias eh='vim ~/.config/home-manager/home.nix'
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+
 setopt EXTENDED_HISTORY
 
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 export PATH="$PATH:$HOME/.local/bin"
-export AWS_ASSUME_ROLE_TTL=1h
-export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
 export EDITOR=vim
 export K9S_EDITOR=vim
 export COURSIER_PROGRESS=false
 export LANG=en_US.UTF-8
-export PATH="$PATH:/Users/dogac/Library/Application Support/Coursier/bin"
-export PATH="$PATH:/Users/dogac/go/bin"
-export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"
-export PATH="$HOME/.pyenv/bin:$PATH"
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-export TERRAGRUNT_TFPATH=$(which terraform)
-export PATH="$PATH:$HOME/.rvm/bin"
+# export PATH="$PATH:/Users/dogac/go/bin"
+# export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"
+# export PATH="$HOME/.pyenv/bin:$PATH"
+# export BUN_INSTALL="$HOME/.bun"
+# export PATH="$BUN_INSTALL/bin:$PATH"
+# export TERRAGRUNT_TFPATH=$(which terraform)
+# export PATH="$PATH:$HOME/.rvm/bin"
 
-source "$HOME/.secrets"
+[ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}"'
 alias gitdel="git branch -r | awk '{print $1}' | egrep -v -f /dev/fd/0 <(git branch -vv | grep origin) | awk '{print $1}' | xargs git branch -D"
@@ -229,17 +238,89 @@ EOF
     "$executable" "$@"
 }
 
+load_secrets() {
+  if ! command -v op &> /dev/null; then
+    echo "[!] 1Password CLI (op) not found. Please install it from https://developer.1password.com/docs/cli/get-started/"
+    return 1
+  fi
+
+  echo "[+] Fetching secrets from 1Password..."
+
+  # 1. Fetch "age/keys.txt" secure note
+  echo "[+] Downloading age keys..."
+  AGE_KEYS=$(op item get "age/keys.txt" --field "notesPlain" 2>/dev/null)
+  if [[ -z "$AGE_KEYS" ]]; then
+    echo "[!] Failed to fetch 'age/keys.txt' from 1Password."
+  else
+    mkdir -p ~/.config/age
+    echo "$AGE_KEYS" > ~/.config/age/keys.txt
+    chmod 600 ~/.config/age/keys.txt
+    echo "[✓] Saved to ~/.config/age/keys.txt"
+  fi
+
+  # 2. Fetch ".secrets" secure note
+  echo "[+] Downloading .secrets..."
+  SECRETS_CONTENT=$(op item get ".secrets" --field "notesPlain" 2>/dev/null)
+  if [[ -z "$SECRETS_CONTENT" ]]; then
+    echo "[!] Failed to fetch '.secrets' from 1Password."
+  else
+    echo "$SECRETS_CONTENT" > ~/.secrets
+    chmod 600 ~/.secrets
+    echo "[✓] Saved to ~/.secrets"
+  fi
+}
+
+upload_secrets() {
+  if ! command -v op &> /dev/null; then
+    echo "[!] 1Password CLI (op) not found. Please install it from https://developer.1password.com/docs/cli/get-started/"
+    return 1
+  fi
+
+  # Upload function for a single file
+  _upload_note() {
+    local file_path="$1"
+    local item_title="$2"
+
+    if [[ ! -f "$file_path" ]]; then
+      echo "[!] File not found: $file_path"
+      return
+    fi
+
+    local content
+    content=$(<"$file_path")
+
+    echo "[+] Uploading '$file_path' to 1Password item: '$item_title'..."
+
+    # Check if item exists
+    if op item get "$item_title" &>/dev/null; then
+      # Update existing item
+      op item edit "$item_title" notesPlain="$content" &>/dev/null \
+        && echo "[✓] Updated '$item_title'" \
+        || echo "[!] Failed to update '$item_title'"
+    else
+      # Create new item as a Secure Note
+      op item create --title "$item_title" --category "Secure Note" notesPlain="$content" &>/dev/null \
+        && echo "[✓] Created '$item_title'" \
+        || echo "[!] Failed to create '$item_title'"
+    fi
+  }
+
+  # Upload both secrets
+  _upload_note "$HOME/.secrets" ".secrets"
+  _upload_note "$HOME/.config/age/keys.txt" "age/keys.txt"
+}
+
 # export NVM_DIR="$HOME/.nvm"
 # [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh" --no-use
 #  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
 #  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
-eval "$(direnv hook $(basename $SHELL))"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# eval "$(direnv hook $(basename $SHELL))"
+# eval "$(pyenv init -)"
+# eval "$(pyenv virtualenv-init -)"
 # eval "$(rbenv init - zsh)"
 eval "$(zoxide init zsh)"
-eval "$(gh copilot alias -- zsh)"
+# eval "$(gh copilot alias -- zsh)"
 # eval "$(mise activate zsh)"
 
 # zinit as="command" lucid from="gh-r" for \
@@ -259,12 +340,11 @@ bindkey '^ee' edit-command-line
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 [ -s ~/.bun/_bun ] && source ~/.bun/_bun
 
-alias claude="/Users/dogac/.claude/local/claude"
+# alias claude="/Users/dogac/.claude/local/claude"
 
 source "$HOME/.llm.zsh"
 
-. "$HOME/.atuin/bin/env"
+# . "$HOME/.atuin/bin/env"
 eval "$(atuin init zsh)"
 
 # zprof
-. "/Users/dogac/.deno/env"
