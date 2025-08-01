@@ -85,7 +85,7 @@ eval "$(fzf --zsh)"
 
 
 alias vim="nvim";
-alias eh='vim ~/.config/home-manager/home.nix'
+alias eh='vim ~/.config/home-manager/home.nix && home-manager switch'
 alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 
 
@@ -106,6 +106,7 @@ export LANG=en_US.UTF-8
 # export TERRAGRUNT_TFPATH=$(which terraform)
 # export PATH="$PATH:$HOME/.rvm/bin"
 
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}"'
@@ -248,7 +249,7 @@ load_secrets() {
 
   # 1. Fetch "age/keys.txt" secure note
   echo "[+] Downloading age keys..."
-  AGE_KEYS=$(op item get "age/keys.txt" --field "notesPlain" 2>/dev/null)
+  AGE_KEYS=$(op item get age/keys.txt --format json | jq -r '.fields[] | select(.label=="notesPlain") | .value' 2>/dev/null)
   if [[ -z "$AGE_KEYS" ]]; then
     echo "[!] Failed to fetch 'age/keys.txt' from 1Password."
   else
@@ -260,7 +261,7 @@ load_secrets() {
 
   # 2. Fetch ".secrets" secure note
   echo "[+] Downloading .secrets..."
-  SECRETS_CONTENT=$(op item get ".secrets" --field "notesPlain" 2>/dev/null)
+  SECRETS_CONTENT=$(op item get .secrets --format json | jq -r '.fields[] | select(.label=="notesPlain") | .value' 2>/dev/null)
   if [[ -z "$SECRETS_CONTENT" ]]; then
     echo "[!] Failed to fetch '.secrets' from 1Password."
   else
@@ -346,5 +347,20 @@ source "$HOME/.llm.zsh"
 
 # . "$HOME/.atuin/bin/env"
 eval "$(atuin init zsh)"
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/dogac/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/dogac/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/dogac/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/dogac/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
 
 # zprof

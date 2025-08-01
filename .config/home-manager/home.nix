@@ -47,6 +47,10 @@
     jujutsu
     atuin
     delta
+    llm
+    nodejs
+    btop
+    lldb
   ];
 
   # Git config
