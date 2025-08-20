@@ -94,8 +94,8 @@ setopt EXTENDED_HISTORY
 export HISTSIZE=1000000000
 export SAVEHIST=$HISTSIZE
 export PATH="$PATH:$HOME/.local/bin"
-export EDITOR=vim
-export K9S_EDITOR=vim
+export EDITOR=nvim
+export K9S_EDITOR=nvim
 export COURSIER_PROGRESS=false
 export LANG=en_US.UTF-8
 # export PATH="$PATH:/Users/dogac/go/bin"
