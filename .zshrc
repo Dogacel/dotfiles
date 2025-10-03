@@ -153,6 +153,10 @@ alias -g ...='../..'
 alias -g ....='../../..'
 alias -g .....='../../../..'
 
+# Northwestern Specific
+alias sshquest='ssh -X ftw9443@login.quest.northwestern.edu'
+alias sshimec='ssh -X ftw9443@imec.ece.northwestern.edu'
+
 function gitall() {
     git add .
     git commit -m "$1"
@@ -347,20 +351,5 @@ source "$HOME/.llm.zsh"
 
 # . "$HOME/.atuin/bin/env"
 eval "$(atuin init zsh)"
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/dogac/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/dogac/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/dogac/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/dogac/miniconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
 
 # zprof
