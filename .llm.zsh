@@ -10,10 +10,11 @@ zsh_llm_suggestions_spinner() {
     trap cleanup SIGINT
     
     echo -ne "\e[?25l"
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    # while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    while kill -0 $pid 2>/dev/null; do
         local temp=${spinstr#?}
         printf " [%c]" "$spinstr"
-        local spinstr=$temp${spinstr%"$temp"}
+        spinstr=$temp${spinstr%"$temp"}
         sleep $delay
         printf "\b\b\b\b"
     done
@@ -29,20 +30,13 @@ zsh_llm_suggestions_run_query() {
 
   [ -e "$result_file" ] && rm $result_file 
 
-  local question="
-Answer the following question by only outputing a shell comand.
-Don't do any formatting, don't wrap it with markdown, never answer any question.
-The output should be directly executable in shell with a simple copy paste.
-Don't include ; at the end unless absolutely needed. Don't use markdown to format the script.
-Don't include any text that will err the command line. Here is the question:
-
-'$query'
-" 
+  local system_prompt="You output only single-line executable shell commands. Use pipes, &&, or $() for complex tasks. No markdown, no explanation, no backticks, no newlines."
+  local question="$query"
 
   if [ -n "$LLM_SESSION_ID" ]; then
     llm -c "$question" >> $result_file
   else
-    llm "$question" >> $result_file
+    llm -s "$system_prompt" "$question" >> $result_file
   fi
 }
 
@@ -54,13 +48,13 @@ function pipe_to_llm() {
 
     # Remove the '#' and any leading whitespace from the remainder
     local text="${BUFFER#\#}"
-    text="${text##*( )}"  # Trim any leading spaces
+    # text="${text##*( )}"  # Trim any leading spaces
     
     # Temporary file to store the result of the background process
     local result_file="/tmp/zsh-llm-suggestions-result"
     # Run the actual query in the background (since it's long-running, and so that we can show a spinner)
     
-    read < <( zsh_llm_suggestions_run_query $result_file $text & echo $! )
+    read < <( zsh_llm_suggestions_run_query "$result_file" "$text" & echo $! )
     # Get the PID of the background process
     local pid=$REPLY
     # Call the spinner function and pass the PID
@@ -82,5 +76,9 @@ zle -N pipe_to_llm
 
 # Bind the Enter key (usually represented as ^M) to our widget
 bindkey '^M' pipe_to_llm 
+
+# Required for trimming leading spaces
+setopt EXTENDED_GLOB
+
 
 

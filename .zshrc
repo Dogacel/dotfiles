@@ -63,6 +63,9 @@ zinit cdreplay -q
 
 zinit light Aloxaf/fzf-tab
 
+zinit atinit'eval "$(mamba shell hook --shell zsh)"' for \
+    zdharma-continuum/null
+
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' menu no
@@ -353,3 +356,9 @@ source "$HOME/.llm.zsh"
 eval "$(atuin init zsh)"
 
 # zprof
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/dogac/.lmstudio/bin"
+# End of LM Studio CLI section
+
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"

@@ -10,12 +10,6 @@
 [commit]
 	template = /Users/dogac/.gitmessage
 
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
-
 [push]
 	default = current
 
@@ -121,3 +115,8 @@
 	HEAD = 5 normal italic
 [diff]
 	colorMoved = zebra
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
