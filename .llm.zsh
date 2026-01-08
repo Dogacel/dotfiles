@@ -34,7 +34,7 @@ zsh_llm_suggestions_run_query() {
   local question="$query"
 
   if [ -n "$LLM_SESSION_ID" ]; then
-    llm -c "$question" >> $result_file
+    llm -s "$system_prompt" -c "$question" >> $result_file
   else
     llm -s "$system_prompt" "$question" >> $result_file
   fi
